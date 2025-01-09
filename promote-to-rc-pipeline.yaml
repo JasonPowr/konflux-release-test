@@ -5,12 +5,21 @@ metadata:
 spec:
   description: |
     A Release pipeline designed to gather release candidate images.
+  params:
+    - name: snapshot
+      type: string
+      description: The namespaced name (namespace/name) of the Snapshot
   tasks:
-    - name: dummy-echo
-      taskSpec:
-        steps:
-          - name: echo-step
-            image: ubuntu
-            script: |
-              #!/usr/bin/env bash
-              echo "Hello world"
+    - name: parse-metadata
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: "https://github.com/JasonPowr/konflux-release-test.git"
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/parse-metadata.yaml
+      params:
+        - name: snapshot
+          value: $(params.snapshot)
