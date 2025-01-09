@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: promote-to-rc
+spec:
+  description: |
+    A Release pipeline designed to gather release candidate images.
+  tasks:
+    - name: dummy-echo
+      taskSpec:
+        steps:
+          - name: echo-step
+            image: ubuntu
+            script: |
+              #!/usr/bin/env bash
+              echo "Hello world"

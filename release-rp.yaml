@@ -1,0 +1,21 @@
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: ReleasePlan
+metadata:
+  labels:
+    release.appstudio.openshift.io/auto-release: 'true'
+    release.appstudio.openshift.io/standing-attribution: 'true'
+  name: promote-to-rc
+  namespace: japower-tenant
+spec:
+  application: konflux-release-test
+  tenantPipeline:
+    serviceAccountName: japower-release
+    pipelineRef:
+      resolver: git
+      params:
+        - name: url
+          value: "https://github.com/JasonPowr/konflux-release-test.git"
+        - name: revision
+          value: main
+        - name: pathInRepo
+          value: "promote-to-rc-pipeline.yaml"
