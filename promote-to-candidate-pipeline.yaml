@@ -23,3 +23,26 @@ spec:
       params:
         - name: snapshot
           value: $(params.snapshot)
+      workspaces:
+        - name: output
+          workspace: release-workspace
+    - name: verify-its
+      runAfter:
+        - parse-snapshot
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: "https://github.com/JasonPowr/konflux-release-test.git"
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/verify-its.yaml
+      params:
+        - name: snapshotStatus
+          value: "$(tasks.parse-snapshot.results.snapshotStatus)"
+      workspaces:
+        - name: output
+          workspace: release-workspace
+  workspaces:
+    - name: release-workspace
