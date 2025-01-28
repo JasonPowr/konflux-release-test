@@ -4,10 +4,10 @@ metadata:
   labels:
     release.appstudio.openshift.io/auto-release: 'true'
     release.appstudio.openshift.io/standing-attribution: 'true'
-  name: promote-to-rc
+  name: promote-to-candidate
   namespace: japower-tenant
 spec:
-  application: konflux-release-test
+  application: konflux-release-pipeline
   tenantPipeline:
     serviceAccountName: japower-release
     pipelineRef:
@@ -18,4 +18,4 @@ spec:
         - name: revision
           value: main
         - name: pathInRepo
-          value: "promote-to-rc-pipeline.yaml"
+          value: "promote-to-candidate-pipeline.yaml"

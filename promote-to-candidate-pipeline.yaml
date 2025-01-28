@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: promote-to-rc
+  name: promote-to-candidate
 spec:
   description: |
     A Release pipeline designed to gather release candidate images.
