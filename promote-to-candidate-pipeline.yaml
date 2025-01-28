@@ -9,6 +9,13 @@ spec:
     - name: snapshot
       type: string
       description: The namespaced name (namespace/name) of the Snapshot
+    - name: git-url
+      type: string
+      description: Source Repository URL
+    - name: revision
+      type: string
+      default: ""
+      description: Revision of the Source Repository
   tasks:
     - name: parse-snapshot
       taskRef:
@@ -41,6 +48,28 @@ spec:
       params:
         - name: snapshotStatus
           value: "$(tasks.parse-snapshot.results.snapshotStatus)"
+      workspaces:
+        - name: output
+          workspace: release-workspace
+    - name: push-to-github
+      runAfter:
+        - verify-its
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: "https://github.com/JasonPowr/konflux-release-test.git"
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/push-to-github.yaml
+      params:
+        - name: git-url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.revision)
+        - name: snapshotSpec
+          value: "$(tasks.parse-snapshot.results.snapshotSpec)"
       workspaces:
         - name: output
           workspace: release-workspace
