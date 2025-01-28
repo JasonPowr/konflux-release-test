@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: parse-snapshot
+spec:
+  description: >-
+    Tekton task to collect release metadata
+  params:
+    - name: snapshot
+      type: string
+      description: The namespaced name of the Snapshot
+  results:
+    - name: snapshotSpec
+      type: string
+  steps:
+    - name: collect-snapshot-spec
+      image: quay.io/konflux-ci/release-service-utils:e633d51cd41d73e4b3310face21bb980af7a662f
+      env:
+        - name: SNAPSHOT
+          value: '$(params.snapshot)'
+      script: |
+        #!/usr/bin/env sh
+        set -eo pipefail
+
+        echo -e "\nFetching Snapshot Details...."
+        SNAPSHOT_SPEC=$(get-resource "snapshot" "${SNAPSHOT}" "{.spec}")
+        SNAPSHOT_NAME=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.name}")
+        SNAPSHOT_CREATION_TIMESTAMP=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.creationTimestamp}")
+        SNAPSHOT_STATUS=$(get-resource "snapshot" "${SNAPSHOT}" "{.status}")
+
+        JSON_OUTPUT=$(cat <<EOF
+        {
+          "snapshot_name": "${SNAPSHOT_NAME}",
+          "snapshot_creation_timestamp": "${SNAPSHOT_CREATION_TIMESTAMP}",
+          "snapshot_spec": ${SNAPSHOT_SPEC},
+          "snapshot_status": "${SNAPSHOT_STATUS}",
+        }
+        EOF
+        )
+
+        echo -e "\nSnapshot Details:"
+        echo "${JSON_OUTPUT}"
+        echo "${JSON_OUTPUT}" > "$(results.snapshotSpec.path)"
+
