@@ -14,6 +14,8 @@ spec:
       description: Revision
     - name: snapshotSpec
       description: A JSON object containing Snapshot info
+    - name: type
+      description: The type of image being pushed, should be one of component, operator, or fbc
   stepTemplate:
     image: quay.io/konflux-ci/appstudio-utils:48c311af02858e2422d6229600e9959e496ddef1@sha256:91ddd999271f65d8ec8487b10f3dd378f81aa894e11b9af4d10639fd52bba7e8
     workingDir: /workspace/output/source
@@ -46,6 +48,30 @@ spec:
         
         git clone "$(params.git-url)" repo
 
+    - name: set-file-type
+      env:
+        - name: IMAGE_TYPE
+          value: '$(params.type)'
+        - name: FILE_NAME
+          value: '$(params.type).json'
+      script: |
+        #!/usr/bin/env sh
+        set -e
+
+        if [ "$IMAGE_TYPE" = "fbc" ]; then
+          FILE_NAME="fbc.json"
+        elif [ "$IMAGE_TYPE" = "operator" ]; then
+          FILE_NAME="operator.json"
+        elif [ "$IMAGE_TYPE" = "component" ]; then
+          FILE_NAME="components.json"
+        else
+          echo "Unknown IMAGE_TYPE: $IMAGE_TYPE"
+          exit 1
+        fi
+
+        echo -n "$FILE_NAME"  
+        echo "FILE_NAME=$FILE_NAME" >> "$HOME/.env"
+
     - name: push-snapshot
       env:
         - name: SNAPSHOT_SPEC
@@ -53,6 +79,13 @@ spec:
       script: |
         #!/usr/bin/env sh
         set -e
+
+        if [ -f "$HOME/.env" ]; then
+          source "$HOME/.env"
+        else
+          echo "Error: .env file not found!"
+          exit 1
+        fi
 
         echo "==== SNAPSHOT SPEC ===="
         echo "${SNAPSHOT_SPEC}" | jq .
@@ -62,8 +95,8 @@ spec:
         git fetch origin
         git reset --hard origin/"$(params.revision)"
 
-        if [ ! -f components.json ]; then
-          echo "[]" > components.json
+        if [ ! -f "$FILE_NAME" ]; then
+          echo "[]" > "$FILE_NAME"
         fi
 
         jq --argjson newSnap "${SNAPSHOT_SPEC}" '
@@ -78,8 +111,9 @@ spec:
           else
             . + [ $newSnap ]
           end
-        ' components.json > tmp.json && mv tmp.json components.json
-        git add components.json
+        ' "$FILE_NAME" > tmp.json && mv tmp.json "$FILE_NAME"
+
+        git add "$FILE_NAME"
 
         APP_NAME=$(echo "${SNAPSHOT_SPEC}" | jq -r '.snapshot_spec.application')
         git commit -m ":robot: Promote "${APP_NAME}" to candidate"

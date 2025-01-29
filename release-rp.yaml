@@ -15,7 +15,9 @@ spec:
     - name: revision
       value: candidate-images
     - name: code-freeze
-      value: "true"
+      value: "false"
+    - name: type
+      value: "component"
     serviceAccountName: japower-release
     pipelineRef:
       resolver: git
@@ -44,7 +46,9 @@ spec:
     - name: revision
       value: candidate-images
     - name: code-freeze
-      value: "true"
+      value: "false"
+    - name: type
+      value: "component"
     serviceAccountName: japower-release
     pipelineRef:
       resolver: git
@@ -73,7 +77,9 @@ spec:
     - name: revision
       value: candidate-images
     - name: code-freeze
-      value: "true"
+      value: "false"
+    - name: type
+      value: "component"
     serviceAccountName: japower-release
     pipelineRef:
       resolver: git

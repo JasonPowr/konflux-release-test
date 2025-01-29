@@ -20,6 +20,10 @@ spec:
       type: string
       default: "false"
       description: Whether or not to enable code freeze, should be true/false
+    - name: type
+      type: string
+      default: component
+      description: The type of image being pushed, should be one of component, operator, or fbc
   tasks:
     - name: parse-snapshot
       taskRef:
@@ -82,6 +86,8 @@ spec:
           value: $(params.git-url)
         - name: revision
           value: $(params.revision)
+        - name: type
+          value: $(params.type)
         - name: snapshotSpec
           value: "$(tasks.parse-snapshot.results.snapshotSpec)"
       workspaces:
