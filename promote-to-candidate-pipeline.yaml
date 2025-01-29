@@ -16,6 +16,10 @@ spec:
       type: string
       default: ""
       description: Revision of the Source Repository
+    - name: code-freeze
+      type: string
+      default: "false"
+      description: Whether or not to enable code freeze, should be true/false
   tasks:
     - name: parse-snapshot
       taskRef:
@@ -33,6 +37,11 @@ spec:
       workspaces:
         - name: output
           workspace: release-workspace
+      when:
+        - input: "$(params.code-freeze)"
+          operator: in
+          values:
+            - "false"
     - name: verify-its
       runAfter:
         - parse-snapshot
@@ -51,6 +60,11 @@ spec:
       workspaces:
         - name: output
           workspace: release-workspace
+      when:
+        - input: "$(params.code-freeze)"
+          operator: in
+          values:
+            - "false"
     - name: push-to-github
       runAfter:
         - verify-its
@@ -73,5 +87,10 @@ spec:
       workspaces:
         - name: output
           workspace: release-workspace
+      when:
+        - input: "$(params.code-freeze)"
+          operator: in
+          values:
+            - "false"
   workspaces:
     - name: release-workspace
