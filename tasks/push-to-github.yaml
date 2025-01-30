@@ -91,9 +91,17 @@ spec:
         echo "${SNAPSHOT_SPEC}" | jq .
 
         cd repo
-        git checkout -B "$(params.revision)"
         git fetch origin
-        git reset --hard origin/"$(params.revision)"
+
+        if git ls-remote --heads origin | grep -q "refs/heads/$(params.revision)"; then
+            echo "Branch $(params.revision) exists on remote. Checking out..."
+            git checkout -B "$(params.revision)" origin/"$(params.revision)"
+            git reset --hard origin/"$(params.revision)"
+        else
+            echo "Branch $(params.revision) does not exist. Creating and pushing it..."
+            git checkout -b "$(params.revision)"
+            git push origin "$(params.revision)"
+        fi
 
         if [ ! -f "$FILE_NAME" ]; then
           echo "[]" > "$FILE_NAME"
@@ -116,5 +124,5 @@ spec:
         git add "$FILE_NAME"
 
         APP_NAME=$(echo "${SNAPSHOT_SPEC}" | jq -r '.snapshot_spec.application')
-        git commit -m ":robot: Promote "${APP_NAME}" to candidate"
+        git commit -m ":robot:[RHTAS-build-bot] Promote "${APP_NAME}" to candidate"
         git push origin "$(params.revision)" --force

@@ -14,7 +14,7 @@ spec:
       description: Source Repository URL
     - name: revision
       type: string
-      default: ""
+      default: RHTAS-build-bot_candidate-images
       description: Revision of the Source Repository
     - name: code-freeze
       type: string
