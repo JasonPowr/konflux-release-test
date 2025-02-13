@@ -23,28 +23,31 @@ spec:
       env:
         - name: SNAPSHOT
           value: '$(params.snapshot)'
+        - name: HOME
+          value: /workspace
       script: |
         #!/usr/bin/env sh
         set -eo pipefail
 
         echo -e "\nFetching Snapshot Details..."
-        SNAPSHOT_SPEC=$(get-resource "snapshot" "${SNAPSHOT}" "{.spec}")
-        SNAPSHOT_NAME=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.name}")
-        SNAPSHOT_CREATION_TIMESTAMP=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.creationTimestamp}")
-        SNAPSHOT_SHA_URL=$(get-resource "snapshot" "${SNAPSHOT}" '{.metadata.annotations["pac.test.appstudio.openshift.io/sha-url"]}')
+        SNAPSHOT_JSON=$(get-resource "snapshot" "${SNAPSHOT}")
 
-        SNAPSHOT_SPEC_JSON=$(
-          jq -n \
-            --arg name "$SNAPSHOT_NAME" \
-            --arg creation "$SNAPSHOT_CREATION_TIMESTAMP" \
-            --arg sha_url "$SNAPSHOT_SHA_URL" \
-            --argjson spec "$SNAPSHOT_SPEC" \
-            '{
-              "snapshot_name": $name,
-              "snapshot_creation_timestamp": $creation,
-              "snapshot_spec": $spec,
-              "snapshot_sha_url": $sha_url
-            }'
+        SNAPSHOT_SPEC=$(echo "$SNAPSHOT_JSON" | jq '.spec')
+        SNAPSHOT_NAME=$(echo "$SNAPSHOT_JSON" | jq -r '.metadata.name')
+        SNAPSHOT_CREATION_TIMESTAMP=$(echo "$SNAPSHOT_JSON" | jq -r '.metadata.creationTimestamp')
+        SNAPSHOT_SHA=$(echo "$SNAPSHOT_JSON" | jq -r '.metadata.annotations["build.appstudio.redhat.com/commit_sha"]')
+
+        SNAPSHOT_SPEC_JSON=$(jq -n \
+          --arg name "$SNAPSHOT_NAME" \
+          --arg creation "$SNAPSHOT_CREATION_TIMESTAMP" \
+          --arg sha "$SNAPSHOT_SHA" \
+          --argjson spec "$SNAPSHOT_SPEC" \
+          '{
+            snapshot_name: $name,
+            snapshot_creation_timestamp: $creation,
+            snapshot_sha: $sha,
+            snapshot_spec: $spec
+          }'
         )
 
         echo -e "\nFetched Snapshot:"
@@ -52,15 +55,11 @@ spec:
         echo -n "$SNAPSHOT_SPEC_JSON" > "$(results.snapshotSpec.path)"
 
         echo -e "\nFetching Snapshot Status..."
-        SNAPSHOT_STATUS=$(get-resource "snapshot" "${SNAPSHOT}" "{.status}")
+        SNAPSHOT_STATUS=$(echo "$SNAPSHOT_JSON" | jq '.status')
 
-        SNAPSHOT_STATUS_JSON=$(
-          jq -n --argjson status "$SNAPSHOT_STATUS" \
-            '{
-              "snapshot_status": $status
-            }'
+        SNAPSHOT_STATUS_JSON=$(jq -n --argjson status "$SNAPSHOT_STATUS" \
+          '{ snapshot_status: $status }'
         )
 
         echo -e "$SNAPSHOT_STATUS_JSON"
         echo -n "$SNAPSHOT_STATUS_JSON" > "$(results.snapshotStatus.path)"
-
