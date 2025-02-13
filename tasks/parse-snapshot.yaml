@@ -31,16 +31,19 @@ spec:
         SNAPSHOT_SPEC=$(get-resource "snapshot" "${SNAPSHOT}" "{.spec}")
         SNAPSHOT_NAME=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.name}")
         SNAPSHOT_CREATION_TIMESTAMP=$(get-resource "snapshot" "${SNAPSHOT}" "{.metadata.creationTimestamp}")
+        SNAPSHOT_SHA_URL=$(get-resource "snapshot" "${SNAPSHOT}" '{.metadata.annotations["pac.test.appstudio.openshift.io/sha-url"]}')
 
         SNAPSHOT_SPEC_JSON=$(
           jq -n \
             --arg name "$SNAPSHOT_NAME" \
             --arg creation "$SNAPSHOT_CREATION_TIMESTAMP" \
+            --arg sha_url "$SNAPSHOT_SHA_URL" \
             --argjson spec "$SNAPSHOT_SPEC" \
             '{
               "snapshot_name": $name,
               "snapshot_creation_timestamp": $creation,
-              "snapshot_spec": $spec
+              "snapshot_spec": $spec,
+              "snapshot_sha_url": $sha_url
             }'
         )
 
