@@ -46,6 +46,27 @@ spec:
           operator: in
           values:
             - "false"
+    - name: validate-latest-snapshot
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: "https://github.com/JasonPowr/konflux-release-test.git"
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/validate-latest-snapshot.yaml
+      params:
+        - name: snapshotSpec
+          value: "$(tasks.parse-snapshot.results.snapshotSpec)"
+      workspaces:
+        - name: output
+          workspace: release-workspace
+      when:
+        - input: "$(params.code-freeze)"
+          operator: in
+          values:
+            - "false"
     - name: verify-its
       runAfter:
         - parse-snapshot
@@ -65,6 +86,10 @@ spec:
         - name: output
           workspace: release-workspace
       when:
+        - input: "$(tasks.validate-latest-snapshot.results.isLatest)"
+          operator: in
+          values:
+            - "true"
         - input: "$(params.code-freeze)"
           operator: in
           values:
@@ -94,6 +119,10 @@ spec:
         - name: output
           workspace: release-workspace
       when:
+        - input: "$(tasks.validate-latest-snapshot.results.isLatest)"
+          operator: in
+          values:
+            - "true"
         - input: "$(params.code-freeze)"
           operator: in
           values:
