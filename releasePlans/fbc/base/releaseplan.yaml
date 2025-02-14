@@ -1,0 +1,28 @@
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: ReleasePlan
+metadata:
+  labels:
+    release.appstudio.openshift.io/auto-release: 'true'
+    release.appstudio.openshift.io/standing-attribution: 'true'
+  name: promote-to-candidate-
+  namespace: japower-tenant
+spec:
+  application: application
+  tenantPipeline:
+    params:
+    - name: git-url
+      value: https://github.com/JasonPowr/releases
+    - name: code-freeze
+      value: "false"
+    - name: type
+      value: "fbc"
+    serviceAccountName: japower-release
+    pipelineRef:
+      resolver: git
+      params:
+        - name: url
+          value: "https://github.com/JasonPowr/konflux-release-test.git"
+        - name: revision
+          value: main
+        - name: pathInRepo
+          value: "promote-to-candidate-pipeline.yaml"
